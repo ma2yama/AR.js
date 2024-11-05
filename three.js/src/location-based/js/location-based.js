@@ -13,8 +13,17 @@ class LocationBased {
     this._maximumAge = 0;
     this._watchPositionId = null;
     this.setGpsOptions(options);
-    this.initialPosition = null;
-    this.initialPositionAsOrigin = options.initialPositionAsOrigin || false;
+    this.initialPosition =
+      options.initialPosition != null
+        ? this._proj.project(
+            options.initialPosition.longitude,
+            options.initialPosition.latitude
+          )
+        : null;
+    this.initialPositionAsOrigin =
+      options.initialPosition != null ||
+      options.initialPositionAsOrigin ||
+      false;
   }
 
   setProjection(proj) {
