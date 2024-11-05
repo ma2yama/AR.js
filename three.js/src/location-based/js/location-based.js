@@ -142,7 +142,8 @@ class LocationBased {
         this.setWorldPosition(
           this._camera,
           position.coords.longitude,
-          position.coords.latitude
+          position.coords.latitude,
+          position.coords.altitude
         );
 
         if (this._eventHandlers["gpsupdate"]) {
