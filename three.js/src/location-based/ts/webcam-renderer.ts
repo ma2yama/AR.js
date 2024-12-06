@@ -1,16 +1,23 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 class WebcamRenderer {
-  constructor(renderer, videoElement) {
+  renderer: THREE.WebGLRenderer;
+  sceneWebcam: THREE.Scene;
+  geom: THREE.PlaneGeometry;
+  texture: THREE.VideoTexture;
+  material: THREE.MeshBasicMaterial;
+  cameraWebcam: THREE.OrthographicCamera;
+
+  constructor(renderer: THREE.WebGLRenderer, videoElement?: HTMLVideoElement) {
     this.renderer = renderer;
     this.renderer.autoClear = false;
     this.sceneWebcam = new THREE.Scene();
-    let video;
+    let video: HTMLVideoElement;
     if (videoElement === undefined) {
-      video = document.createElement("video");
-      video.setAttribute("autoplay", true);
-      video.setAttribute("playsinline", true);
-      video.style.display = "none";
+      video = document.createElement('video');
+      video.setAttribute('autoplay', 'true');
+      video.setAttribute('playsinline', 'true');
+      video.style.display = 'none';
       document.body.appendChild(video);
     } else {
       video = videoElement;
@@ -26,14 +33,14 @@ class WebcamRenderer {
       0.5,
       -0.5,
       0,
-      10
+      10,
     );
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       const constraints = {
         video: {
           width: 1280,
           height: 720,
-          facingMode: "environment",
+          facingMode: 'environment',
         },
       };
       navigator.mediaDevices
@@ -46,13 +53,13 @@ class WebcamRenderer {
         .catch((e) => {
           setTimeout(() => {
             this.createErrorPopup(
-              "Webcam Error\nName: " + e.name + "\nMessage: " + e.message
+              'Webcam Error\nName: ' + e.name + '\nMessage: ' + e.message,
             );
           }, 1000);
         });
     } else {
       setTimeout(() => {
-        this.createErrorPopup("sorry - media devices API not supported");
+        this.createErrorPopup('sorry - media devices API not supported');
       }, 1000);
     }
   }
@@ -69,11 +76,11 @@ class WebcamRenderer {
     this.geom.dispose();
   }
 
-  createErrorPopup(msg) {
-    if (!document.getElementById("error-popup")) {
-      var errorPopup = document.createElement("div");
+  createErrorPopup(msg: string) {
+    if (!document.getElementById('error-popup')) {
+      const errorPopup = document.createElement('div');
       errorPopup.innerHTML = msg;
-      errorPopup.setAttribute("id", "error-popup");
+      errorPopup.setAttribute('id', 'error-popup');
       document.body.appendChild(errorPopup);
     }
   }

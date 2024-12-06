@@ -1,10 +1,54 @@
-import { SphMercProjection } from "./sphmerc-projection.js";
-import * as THREE from "three";
+import * as THREE from 'three';
+import { SphMercProjection } from './sphmerc-projection';
 
 const EARTH_RADIUS = 6371000;
 
+export interface LatLon {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Coords {
+  longitude: number;
+  latitude: number;
+  altitude?: number | null;
+  accuracy?: number;
+}
+
+interface GpsOptions {
+  gpsMinDistance?: number;
+  gpsMinAccuracy?: number;
+  maximumAge?: number;
+}
+
+type LocationBasedOptions = {
+  initialPosition?: LatLon;
+  initialPositionAsOrigin?: boolean;
+} & GpsOptions;
+
+interface GpsEventHandlers {
+  gpserror?: (code: number) => void;
+  gpsupdate?: (position: { coords: Coords }, moved: number) => void;
+}
+
 class LocationBased {
-  constructor(scene, camera, options = {}) {
+  _scene: THREE.Scene;
+  _camera: THREE.Camera;
+  _proj: SphMercProjection;
+  _eventHandlers: GpsEventHandlers;
+  _lastCoords: Coords | null;
+  _gpsMinDistance: number;
+  _gpsMinAccuracy: number;
+  _maximumAge: number;
+  _watchPositionId: number | null;
+  initialPosition: [number, number] | null;
+  initialPositionAsOrigin: boolean;
+
+  constructor(
+    scene: THREE.Scene,
+    camera: THREE.Camera,
+    options: LocationBasedOptions = {},
+  ) {
     this._scene = scene;
     this._camera = camera;
     this._proj = new SphMercProjection();
@@ -19,7 +63,7 @@ class LocationBased {
       options.initialPosition != null
         ? this._proj.project(
             options.initialPosition.longitude,
-            options.initialPosition.latitude
+            options.initialPosition.latitude,
           )
         : null;
     this.initialPositionAsOrigin =
@@ -28,11 +72,11 @@ class LocationBased {
       false;
   }
 
-  setProjection(proj) {
+  setProjection(proj: SphMercProjection) {
     this._proj = proj;
   }
 
-  setGpsOptions(options = {}) {
+  setGpsOptions(options: GpsOptions = {}) {
     if (options.gpsMinDistance !== undefined) {
       this._gpsMinDistance = options.gpsMinDistance;
     }
@@ -51,8 +95,8 @@ class LocationBased {
           this._gpsReceived(position);
         },
         (error) => {
-          if (this._eventHandlers["gpserror"]) {
-            this._eventHandlers["gpserror"](error.code);
+          if (this._eventHandlers.gpserror) {
+            this._eventHandlers.gpserror(error.code);
           } else {
             alert(`GPS error: code ${error.code}`);
           }
@@ -60,10 +104,12 @@ class LocationBased {
         {
           enableHighAccuracy: true,
           maximumAge: maximumAge != 0 ? maximumAge : this._maximumAge,
-        }
+        },
       );
+
       return true;
     }
+
     return false;
   }
 
@@ -71,12 +117,14 @@ class LocationBased {
     if (this._watchPositionId !== null) {
       navigator.geolocation.clearWatch(this._watchPositionId);
       this._watchPositionId = null;
+
       return true;
     }
+
     return false;
   }
 
-  fakeGps(lon, lat, elev = null, acc = 0) {
+  fakeGps(lon: number, lat: number, elev = null, acc = 0) {
     if (elev !== null) {
       this.setElevation(elev);
     }
@@ -90,7 +138,7 @@ class LocationBased {
     });
   }
 
-  lonLatToWorldCoords(lon, lat) {
+  lonLatToWorldCoords(lon: number, lat: number) {
     const projectedPos = this._proj.project(lon, lat);
     if (this.initialPositionAsOrigin) {
       if (this.initialPosition) {
@@ -100,41 +148,52 @@ class LocationBased {
         throw "Trying to use 'initial position as origin' mode with no initial position determined";
       }
     }
+
     return [projectedPos[0], -projectedPos[1]];
   }
 
-  add(object, lon, lat, elev) {
+  add(object: THREE.Object3D, lon: number, lat: number, elev?: number | null) {
     this.setWorldPosition(object, lon, lat, elev);
     this._scene.add(object);
   }
 
-  setWorldPosition(object, lon, lat, elev) {
+  setWorldPosition(
+    object: THREE.Object3D,
+    lon: number,
+    lat: number,
+    elev?: number | null,
+  ) {
     const worldCoords = this.lonLatToWorldCoords(lon, lat);
-    if (elev !== undefined) {
+    if (elev != null) {
       object.position.y = elev;
     }
     [object.position.x, object.position.z] = worldCoords;
   }
 
-  setElevation(elev) {
+  setElevation(elev: number) {
     this._camera.position.y = elev;
   }
 
-  onGpsError(eventHandler) {
-    this._eventHandlers["gpserror"] = eventHandler;
+  onGpsError(eventHandler: (code: number) => void) {
+    this._eventHandlers.gpserror = eventHandler;
   }
 
-  onGpsUpdate(eventHandler) {
-    this._eventHandlers["gpsupdate"] = eventHandler;
+  onGpsUpdate(
+    eventHandler: (position: { coords: Coords }, moved: number) => void,
+  ) {
+    this._eventHandlers.gpsupdate = eventHandler;
   }
 
-  setWorldOrigin(lon, lat) {
+  setWorldOrigin(lon: number, lat: number) {
     this.initialPosition = this._proj.project(lon, lat);
   }
 
-  _gpsReceived(position) {
+  _gpsReceived(position: { coords: Coords }) {
     let distMoved = Number.MAX_VALUE;
-    if (position.coords.accuracy <= this._gpsMinAccuracy) {
+    if (
+      position.coords.accuracy != null &&
+      position.coords.accuracy <= this._gpsMinAccuracy
+    ) {
       if (this._lastCoords === null) {
         this._lastCoords = {
           latitude: position.coords.latitude,
@@ -150,7 +209,7 @@ class LocationBased {
         if (this.initialPositionAsOrigin && !this.initialPosition) {
           this.setWorldOrigin(
             position.coords.longitude,
-            position.coords.latitude
+            position.coords.latitude,
           );
         }
 
@@ -158,11 +217,11 @@ class LocationBased {
           this._camera,
           position.coords.longitude,
           position.coords.latitude,
-          position.coords.altitude
+          position.coords.altitude,
         );
 
-        if (this._eventHandlers["gpsupdate"]) {
-          this._eventHandlers["gpsupdate"](position, distMoved);
+        if (this._eventHandlers.gpsupdate) {
+          this._eventHandlers.gpsupdate(position, distMoved);
         }
       }
     }
@@ -173,7 +232,7 @@ class LocationBased {
    *
    * Taken from original A-Frame components
    */
-  _haversineDist(src, dest) {
+  _haversineDist(src: Coords, dest: Coords) {
     const dlongitude = THREE.MathUtils.degToRad(dest.longitude - src.longitude);
     const dlatitude = THREE.MathUtils.degToRad(dest.latitude - src.latitude);
 
@@ -183,6 +242,7 @@ class LocationBased {
         Math.cos(THREE.MathUtils.degToRad(dest.latitude)) *
         (Math.sin(dlongitude / 2) * Math.sin(dlongitude / 2));
     const angle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
     return angle * EARTH_RADIUS;
   }
 }
