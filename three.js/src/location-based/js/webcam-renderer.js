@@ -13,7 +13,7 @@ class WebcamRenderer {
       video.style.display = "none";
       document.body.appendChild(video);
     } else {
-      video = document.querySelector(videoElement);
+      video = videoElement;
     }
     this.geom = new THREE.PlaneGeometry();
     this.texture = new THREE.VideoTexture(video);
