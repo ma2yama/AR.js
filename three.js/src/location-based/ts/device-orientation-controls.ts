@@ -39,7 +39,9 @@ function isSafariDeviceOrientationEvent(
   return typeof event.requestPermission === 'function';
 }
 
-class DeviceOrientationControls extends EventDispatcher<{ type: 'change' }> {
+class DeviceOrientationControls extends EventDispatcher<{
+  change: { type: 'change' };
+}> {
   object: Camera;
   enabled: boolean;
   screenOrientation: number;
