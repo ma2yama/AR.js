@@ -30,6 +30,10 @@ module.exports = (env, argv) => {
             inline: 'no-fallback'
           }
         }
+      },
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader'
       }
     ]
   };
@@ -132,13 +136,16 @@ module.exports = (env, argv) => {
   {
     name: 'threex-location-only',
     devtool,
-    entry: './three.js/src/location-based/index.js',
+    entry: './three.js/src/location-based/index.ts',
     output: {
       library: 'THREEx',
       path: path.resolve(__dirname, 'three.js/build'),
       filename: 'ar-threex-location-only.js',
       libraryTarget: 'umd',
       globalObject: 'this'
+    },
+    resolve: {
+      extensions: ['.ts', '.js']
     },
     module,
     externals: {
