@@ -10,6 +10,10 @@ const _q1 = new Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // - PI/2 aro
 
 const _changeEvent = { type: "change" };
 
+const EPS = 0.000001;
+const TWO_PI = 2 * Math.PI;
+const HALF_PI = 0.5 * Math.PI;
+
 class DeviceOrientationControls extends EventDispatcher {
   constructor(object) {
     super();
@@ -22,7 +26,6 @@ class DeviceOrientationControls extends EventDispatcher {
 
     const scope = this;
 
-    const EPS = 0.000001;
     const lastQuaternion = new Quaternion();
 
     this.object = object;
@@ -35,8 +38,6 @@ class DeviceOrientationControls extends EventDispatcher {
 
     this.alphaOffset = 0; // radians
 
-    this.TWO_PI = 2 * Math.PI;
-    this.HALF_PI = 0.5 * Math.PI;
     this.orientationChangeEventName =
       "ondeviceorientationabsolute" in window
         ? "deviceorientationabsolute"
@@ -157,14 +158,14 @@ class DeviceOrientationControls extends EventDispatcher {
               k
             );
             gamma = this._getSmoothedAngle(
-              gamma + this.HALF_PI,
+              gamma + HALF_PI,
               this.lastOrientation.gamma,
               k,
               Math.PI
             );
           } else {
             beta += Math.PI;
-            gamma += this.HALF_PI;
+            gamma += HALF_PI;
           }
 
           this.lastOrientation = {
@@ -178,7 +179,7 @@ class DeviceOrientationControls extends EventDispatcher {
           scope.object.quaternion,
           alpha,
           this.smoothingFactor < 1 ? beta - Math.PI : beta,
-          this.smoothingFactor < 1 ? gamma - this.HALF_PI : gamma,
+          this.smoothingFactor < 1 ? gamma - HALF_PI : gamma,
           orient
         );
 
@@ -190,7 +191,7 @@ class DeviceOrientationControls extends EventDispatcher {
     };
 
     // NW Added
-    this._orderAngle = function (a, b, range = this.TWO_PI) {
+    this._orderAngle = function (a, b, range = TWO_PI) {
       if (
         (b > a && Math.abs(b - a) < range / 2) ||
         (a > b && Math.abs(b - a) > range / 2)
@@ -202,7 +203,7 @@ class DeviceOrientationControls extends EventDispatcher {
     };
 
     // NW Added
-    this._getSmoothedAngle = function (a, b, k, range = this.TWO_PI) {
+    this._getSmoothedAngle = function (a, b, k, range = TWO_PI) {
       const angles = this._orderAngle(a, b, range);
       const angleshift = angles.left;
       const origAnglesRight = angles.right;

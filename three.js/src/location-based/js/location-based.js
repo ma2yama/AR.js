@@ -1,6 +1,8 @@
 import { SphMercProjection } from "./sphmerc-projection.js";
 import * as THREE from "three";
 
+const EARTH_RADIUS = 6371000;
+
 class LocationBased {
   constructor(scene, camera, options = {}) {
     this._scene = scene;
@@ -177,7 +179,7 @@ class LocationBased {
         Math.cos(THREE.MathUtils.degToRad(dest.latitude)) *
         (Math.sin(dlongitude / 2) * Math.sin(dlongitude / 2));
     const angle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return angle * 6371000;
+    return angle * EARTH_RADIUS;
   }
 }
 
