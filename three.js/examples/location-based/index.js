@@ -27,14 +27,14 @@ function main() {
     let fake = null;
     let first = true;
 
-    arjs.on("gpsupdate", pos => {
+    arjs.GpsUpdate((pos) => {
         if(first) {
             setupObjects(pos.coords.longitude, pos.coords.latitude);
             first = false;
         }
     });
 
-    arjs.on("gpserror", code => {
+    arjs.onGpsError((code) => {
         alert(`GPS error: code ${code}`);
     });
 

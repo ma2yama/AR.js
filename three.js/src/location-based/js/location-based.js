@@ -120,8 +120,12 @@ class LocationBased {
     this._camera.position.y = elev;
   }
 
-  on(eventName, eventHandler) {
-    this._eventHandlers[eventName] = eventHandler;
+  onGpsError(eventHandler) {
+    this._eventHandlers["gpserror"] = eventHandler;
+  }
+
+  onGpsUpdate(eventHandler) {
+    this._eventHandlers["gpsupdate"] = eventHandler;
   }
 
   setWorldOrigin(lon, lat) {

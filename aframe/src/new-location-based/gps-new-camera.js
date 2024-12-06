@@ -46,7 +46,7 @@ AFRAME.registerComponent("gps-new-camera", {
       }
     );
 
-    this.threeLoc.on("gpsupdate", (gpspos) => {
+    this.threeLoc.onGpsUpdate((gpspos) => {
       this._currentPosition = {
         longitude: gpspos.coords.longitude,
         latitude: gpspos.coords.latitude,
@@ -54,7 +54,7 @@ AFRAME.registerComponent("gps-new-camera", {
       this._sendGpsUpdateEvent(gpspos.coords.longitude, gpspos.coords.latitude);
     });
 
-    this.threeLoc.on("gpserror", (code) => {
+    this.threeLoc.onGpsError((code) => {
       const msg = [
         "User denied access to GPS.",
         "GPS satellites not available.",
