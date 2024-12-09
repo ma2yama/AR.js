@@ -1,4 +1,3 @@
-const EARTH = 40075016.68;
 const HALF_EARTH = 20037508.34;
 
 class SphMercProjection {
