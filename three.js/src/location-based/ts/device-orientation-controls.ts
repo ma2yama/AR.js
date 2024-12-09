@@ -83,8 +83,6 @@ class DeviceOrientationControls extends EventDispatcher<{
       );
     }
 
-    const scope = this;
-
     const lastQuaternion = new Quaternion();
 
     this.object = object;
@@ -103,29 +101,27 @@ class DeviceOrientationControls extends EventDispatcher<{
 
     this.smoothingFactor = 1;
 
-    const onDeviceOrientationChangeEvent = function (
-      event: DeviceOrientationEvent,
-    ) {
-      scope.deviceOrientation = {
+    const onDeviceOrientationChangeEvent = (event: DeviceOrientationEvent) => {
+      this.deviceOrientation = {
         alpha: event.alpha,
         beta: event.beta,
         gamma: event.gamma,
       };
     };
 
-    const onScreenOrientationChangeEvent = function () {
-      scope.screenOrientation = window.orientation || 0;
+    const onScreenOrientationChangeEvent = () => {
+      this.screenOrientation = window.orientation || 0;
     };
 
     // The angles alpha, beta and gamma form a set of intrinsic Tait-Bryan angles of type Z-X'-Y''
 
-    const setObjectQuaternion = function (
+    const setObjectQuaternion = (
       quaternion: Quaternion,
       alpha: number,
       beta: number,
       gamma: number,
       orient: number,
-    ) {
+    ) => {
       _euler.set(beta, alpha, -gamma, 'YXZ'); // 'ZXY' for the device, but 'YXZ' for us
 
       quaternion.setFromEuler(_euler); // orient the device
@@ -135,7 +131,7 @@ class DeviceOrientationControls extends EventDispatcher<{
       quaternion.multiply(_q0.setFromAxisAngle(_zee, -orient)); // adjust for screen orientation
     };
 
-    this.connect = function () {
+    this.connect = () => {
       onScreenOrientationChangeEvent(); // run once on load
 
       // iOS 13+
@@ -151,12 +147,12 @@ class DeviceOrientationControls extends EventDispatcher<{
               window.addEventListener<
                 'deviceorientationabsolute' | 'deviceorientation'
               >(
-                scope.orientationChangeEventName,
+                this.orientationChangeEventName,
                 onDeviceOrientationChangeEvent,
               );
             }
           })
-          .catch(function (error) {
+          .catch((error) => {
             console.error(
               'THREE.DeviceOrientationControls: Unable to use DeviceOrientation API:',
               error,
@@ -169,40 +165,40 @@ class DeviceOrientationControls extends EventDispatcher<{
         );
         window.addEventListener<
           'deviceorientationabsolute' | 'deviceorientation'
-        >(scope.orientationChangeEventName, onDeviceOrientationChangeEvent);
+        >(this.orientationChangeEventName, onDeviceOrientationChangeEvent);
       }
 
-      scope.enabled = true;
+      this.enabled = true;
     };
 
-    this.disconnect = function () {
+    this.disconnect = () => {
       window.removeEventListener(
         'orientationchange',
         onScreenOrientationChangeEvent,
       );
       window.removeEventListener<
         'deviceorientationabsolute' | 'deviceorientation'
-      >(scope.orientationChangeEventName, onDeviceOrientationChangeEvent);
+      >(this.orientationChangeEventName, onDeviceOrientationChangeEvent);
 
-      scope.enabled = false;
+      this.enabled = false;
     };
 
-    this.update = function () {
-      if (!scope.enabled) return;
+    this.update = () => {
+      if (!this.enabled) return;
 
-      const device = scope.deviceOrientation;
+      const device = this.deviceOrientation;
 
       if (device) {
         let alpha = device.alpha
-          ? MathUtils.degToRad(device.alpha) + scope.alphaOffset
+          ? MathUtils.degToRad(device.alpha) + this.alphaOffset
           : 0; // Z
 
         let beta = device.beta ? MathUtils.degToRad(device.beta) : 0; // X'
 
         let gamma = device.gamma ? MathUtils.degToRad(device.gamma) : 0; // Y''
 
-        const orient = scope.screenOrientation
-          ? MathUtils.degToRad(scope.screenOrientation)
+        const orient = this.screenOrientation
+          ? MathUtils.degToRad(this.screenOrientation)
           : 0; // O
 
         if (this.smoothingFactor < 1) {
@@ -241,22 +237,22 @@ class DeviceOrientationControls extends EventDispatcher<{
         }
 
         setObjectQuaternion(
-          scope.object.quaternion,
+          this.object.quaternion,
           alpha,
           this.smoothingFactor < 1 ? beta - Math.PI : beta,
           this.smoothingFactor < 1 ? gamma - HALF_PI : gamma,
           orient,
         );
 
-        if (8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
-          lastQuaternion.copy(scope.object.quaternion);
-          scope.dispatchEvent(_changeEvent);
+        if (8 * (1 - lastQuaternion.dot(this.object.quaternion)) > EPS) {
+          lastQuaternion.copy(this.object.quaternion);
+          this.dispatchEvent(_changeEvent);
         }
       }
     };
 
     // NW Added
-    this._orderAngle = function (a: number, b: number, range = TWO_PI) {
+    this._orderAngle = (a: number, b: number, range = TWO_PI) => {
       if (
         (b > a && Math.abs(b - a) < range / 2) ||
         (a > b && Math.abs(b - a) > range / 2)
@@ -268,12 +264,12 @@ class DeviceOrientationControls extends EventDispatcher<{
     };
 
     // NW Added
-    this._getSmoothedAngle = function (
+    this._getSmoothedAngle = (
       a: number,
       b: number,
       k: number,
       range = TWO_PI,
-    ) {
+    ) => {
       const angles = this._orderAngle(a, b, range);
       const angleshift = angles.left;
       const origAnglesRight = angles.right;
@@ -290,8 +286,8 @@ class DeviceOrientationControls extends EventDispatcher<{
       return newangle;
     };
 
-    this.dispose = function () {
-      scope.disconnect();
+    this.dispose = () => {
+      this.disconnect();
     };
 
     this.connect();
