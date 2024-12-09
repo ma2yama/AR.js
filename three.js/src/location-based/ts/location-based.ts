@@ -72,11 +72,11 @@ class LocationBased {
       false;
   }
 
-  setProjection(proj: SphMercProjection) {
+  setProjection(proj: SphMercProjection): void {
     this._proj = proj;
   }
 
-  setGpsOptions(options: GpsOptions = {}) {
+  setGpsOptions(options: GpsOptions = {}): void {
     if (options.gpsMinDistance !== undefined) {
       this._gpsMinDistance = options.gpsMinDistance;
     }
@@ -88,7 +88,7 @@ class LocationBased {
     }
   }
 
-  startGps(maximumAge = 0) {
+  startGps(maximumAge = 0): boolean {
     if (this._watchPositionId === null) {
       this._watchPositionId = navigator.geolocation.watchPosition(
         (position) => {
@@ -113,7 +113,7 @@ class LocationBased {
     return false;
   }
 
-  stopGps() {
+  stopGps(): boolean {
     if (this._watchPositionId !== null) {
       navigator.geolocation.clearWatch(this._watchPositionId);
       this._watchPositionId = null;
@@ -124,7 +124,7 @@ class LocationBased {
     return false;
   }
 
-  fakeGps(lon: number, lat: number, elev = null, acc = 0) {
+  fakeGps(lon: number, lat: number, elev = null, acc = 0): void {
     if (elev !== null) {
       this.setElevation(elev);
     }
@@ -138,7 +138,7 @@ class LocationBased {
     });
   }
 
-  lonLatToWorldCoords(lon: number, lat: number) {
+  lonLatToWorldCoords(lon: number, lat: number): [number, number] {
     const projectedPos = this._proj.project(lon, lat);
     if (this.initialPositionAsOrigin) {
       if (this.initialPosition) {
@@ -152,7 +152,12 @@ class LocationBased {
     return [projectedPos[0], -projectedPos[1]];
   }
 
-  add(object: THREE.Object3D, lon: number, lat: number, elev?: number | null) {
+  add(
+    object: THREE.Object3D,
+    lon: number,
+    lat: number,
+    elev?: number | null,
+  ): void {
     this.setWorldPosition(object, lon, lat, elev);
     this._scene.add(object);
   }
@@ -162,7 +167,7 @@ class LocationBased {
     lon: number,
     lat: number,
     elev?: number | null,
-  ) {
+  ): void {
     const worldCoords = this.lonLatToWorldCoords(lon, lat);
     if (elev != null) {
       object.position.y = elev;
@@ -170,25 +175,25 @@ class LocationBased {
     [object.position.x, object.position.z] = worldCoords;
   }
 
-  setElevation(elev: number) {
+  setElevation(elev: number): void {
     this._camera.position.y = elev;
   }
 
-  onGpsError(eventHandler: (code: number) => void) {
+  onGpsError(eventHandler: (code: number) => void): void {
     this._eventHandlers.gpserror = eventHandler;
   }
 
   onGpsUpdate(
     eventHandler: (position: { coords: Coords }, moved: number) => void,
-  ) {
+  ): void {
     this._eventHandlers.gpsupdate = eventHandler;
   }
 
-  setWorldOrigin(lon: number, lat: number) {
+  setWorldOrigin(lon: number, lat: number): void {
     this.initialPosition = this._proj.project(lon, lat);
   }
 
-  _gpsReceived(position: { coords: Coords }) {
+  _gpsReceived(position: { coords: Coords }): void {
     let distMoved = Number.MAX_VALUE;
     if (
       position.coords.accuracy != null &&
@@ -232,7 +237,7 @@ class LocationBased {
    *
    * Taken from original A-Frame components
    */
-  _haversineDist(src: Coords, dest: Coords) {
+  _haversineDist(src: Coords, dest: Coords): number {
     const dlongitude = THREE.MathUtils.degToRad(dest.longitude - src.longitude);
     const dlatitude = THREE.MathUtils.degToRad(dest.latitude - src.latitude);
 

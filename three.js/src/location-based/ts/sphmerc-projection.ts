@@ -8,26 +8,26 @@ class SphMercProjection {
     return [this.lonToSphMerc(lon), this.latToSphMerc(lat)];
   }
 
-  unproject(projected: [number, number]) {
+  unproject(projected: [number, number]): [number, number] {
     return [this.sphMercToLon(projected[0]), this.sphMercToLat(projected[1])];
   }
 
-  lonToSphMerc(lon: number) {
+  lonToSphMerc(lon: number): number {
     return (lon / 180) * HALF_EARTH;
   }
 
-  latToSphMerc(lat: number) {
+  latToSphMerc(lat: number): number {
     const y =
       Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) / (Math.PI / 180);
 
     return (y * HALF_EARTH) / 180.0;
   }
 
-  sphMercToLon(x: number) {
+  sphMercToLon(x: number): number {
     return (x / HALF_EARTH) * 180.0;
   }
 
-  sphMercToLat(y: number) {
+  sphMercToLat(y: number): number {
     let lat = (y / HALF_EARTH) * 180.0;
     lat =
       (180 / Math.PI) *
@@ -36,7 +36,7 @@ class SphMercProjection {
     return lat;
   }
 
-  getID() {
+  getID(): string {
     return 'epsg:3857';
   }
 }

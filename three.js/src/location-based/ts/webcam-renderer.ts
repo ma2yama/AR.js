@@ -64,19 +64,19 @@ class WebcamRenderer {
     }
   }
 
-  update() {
+  update(): void {
     this.renderer.clear();
     this.renderer.render(this.sceneWebcam, this.cameraWebcam);
     this.renderer.clearDepth();
   }
 
-  dispose() {
+  dispose(): void {
     this.material.dispose();
     this.texture.dispose();
     this.geom.dispose();
   }
 
-  createErrorPopup(msg: string) {
+  createErrorPopup(msg: string): void {
     if (!document.getElementById('error-popup')) {
       const errorPopup = document.createElement('div');
       errorPopup.innerHTML = msg;
