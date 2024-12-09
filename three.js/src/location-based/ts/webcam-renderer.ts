@@ -35,33 +35,27 @@ class WebcamRenderer {
       0,
       10,
     );
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      const constraints = {
-        video: {
-          width: 1280,
-          height: 720,
-          facingMode: 'environment',
-        },
-      };
-      navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then((stream) => {
-          console.log(`using the webcam successfully...`);
-          video.srcObject = stream;
-          video.play();
-        })
-        .catch((e) => {
-          setTimeout(() => {
-            this.createErrorPopup(
-              'Webcam Error\nName: ' + e.name + '\nMessage: ' + e.message,
-            );
-          }, 1000);
-        });
-    } else {
-      setTimeout(() => {
-        this.createErrorPopup('sorry - media devices API not supported');
-      }, 1000);
-    }
+    const constraints = {
+      video: {
+        width: 1280,
+        height: 720,
+        facingMode: 'environment',
+      },
+    };
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then((stream) => {
+        console.log(`using the webcam successfully...`);
+        video.srcObject = stream;
+        video.play();
+      })
+      .catch((e) => {
+        setTimeout(() => {
+          this.createErrorPopup(
+            'Webcam Error\nName: ' + e.name + '\nMessage: ' + e.message,
+          );
+        }, 1000);
+      });
   }
 
   update(): void {
