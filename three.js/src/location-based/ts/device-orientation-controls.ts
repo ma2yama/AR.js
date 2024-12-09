@@ -188,14 +188,15 @@ class DeviceOrientationControls extends EventDispatcher<{
 
       const device = this.deviceOrientation;
 
-      if (device) {
-        let alpha = device.alpha
-          ? MathUtils.degToRad(device.alpha) + this.alphaOffset
-          : 0; // Z
+      if (device != null) {
+        let alpha =
+          device.alpha != null
+            ? MathUtils.degToRad(device.alpha) + this.alphaOffset
+            : 0; // Z
 
-        let beta = device.beta ? MathUtils.degToRad(device.beta) : 0; // X'
+        let beta = device.beta != null ? MathUtils.degToRad(device.beta) : 0; // X'
 
-        let gamma = device.gamma ? MathUtils.degToRad(device.gamma) : 0; // Y''
+        let gamma = device.gamma != null ? MathUtils.degToRad(device.gamma) : 0; // Y''
 
         const orient = this.screenOrientation
           ? MathUtils.degToRad(this.screenOrientation)

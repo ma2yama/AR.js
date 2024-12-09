@@ -68,7 +68,7 @@ class LocationBased {
         : null;
     this.initialPositionAsOrigin =
       options.initialPosition != null ||
-      options.initialPositionAsOrigin ||
+      options.initialPositionAsOrigin === true ||
       false;
   }
 
