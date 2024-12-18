@@ -8,67 +8,48 @@ import Context from "../threex/arjs-context"; // TODO context build-dependent
  * @param {Object} parameters - parameters for this session
  */
 class Session {
-  constructor(parameters) {
-    var _this = this;
-    // handle default parameters
-    this.parameters = {
-      renderer: null,
-      camera: null,
-      scene: null,
-      sourceParameters: {},
-      contextParameters: {},
-    };
+  // handle default parameters
+  parameters = {
+    renderer: null,
+    camera: null,
+    scene: null,
+    sourceParameters: {},
+    contextParameters: {},
+  };
 
+  constructor(parameters) {
     //////////////////////////////////////////////////////////////////////////////
     //		setParameters
     //////////////////////////////////////////////////////////////////////////////
-    setParameters(parameters);
-    function setParameters(parameters) {
+    const setParameters = (parameters) => {
       if (parameters === undefined) return;
-      for (var key in parameters) {
-        var newValue = parameters[key];
+      for (const key in parameters) {
+        const newValue = parameters[key];
 
         if (newValue === undefined) {
-          console.warn("THREEx.Session: '" + key + "' parameter is undefined.");
+          console.warn(`THREEx.Session: '${key}' parameter is undefined.`);
           continue;
         }
 
-        var currentValue = _this.parameters[key];
+        const currentValue = this.parameters[key];
 
         if (currentValue === undefined) {
           console.warn(
-            "THREEx.Session: '" + key + "' is not a property of this material."
+            `THREEx.Session: '${key}' is not a property of this material.`
           );
           continue;
         }
 
-        _this.parameters[key] = newValue;
+        this.parameters[key] = newValue;
       }
-    }
+    };
+
+    setParameters(parameters);
+
     // sanity check
     console.assert(this.parameters.renderer instanceof THREE.WebGLRenderer);
     console.assert(this.parameters.camera instanceof THREE.Camera);
     console.assert(this.parameters.scene instanceof THREE.Scene);
-
-    // backward emulation
-    Object.defineProperty(this, "renderer", {
-      get: function () {
-        console.warn("use .parameters.renderer renderer");
-        return this.parameters.renderer;
-      },
-    });
-    Object.defineProperty(this, "camera", {
-      get: function () {
-        console.warn("use .parameters.camera instead");
-        return this.parameters.camera;
-      },
-    });
-    Object.defineProperty(this, "scene", {
-      get: function () {
-        console.warn("use .parameters.scene instead");
-        return this.parameters.scene;
-      },
-    });
 
     // log the version
     console.log(
@@ -81,22 +62,22 @@ class Session {
     //////////////////////////////////////////////////////////////////////////////
     //		init arSource
     //////////////////////////////////////////////////////////////////////////////
-    var arSource = (_this.arSource = new Source(parameters.sourceParameters));
+    this.arSource = new Source(parameters.sourceParameters);
 
-    arSource.init(function onReady() {
-      arSource.onResize(
-        arContext,
-        _this.parameters.renderer,
-        _this.parameters.camera
+    this.arSource.init(() => {
+      this.arSource.onResize(
+        this.arContext,
+        this.parameters.renderer,
+        this.parameters.camera
       );
     });
 
     // handle resize
-    window.addEventListener("resize", function () {
-      arSource.onResize(
-        arContext,
-        _this.parameters.renderer,
-        _this.parameters.camera
+    window.addEventListener("resize", () => {
+      this.arSource.onResize(
+        this.arContext,
+        this.parameters.renderer,
+        this.parameters.camera
       );
     });
 
@@ -105,56 +86,71 @@ class Session {
     //////////////////////////////////////////////////////////////////////////////
 
     // create atToolkitContext
-    var arContext = (_this.arContext = new Context(
-      parameters.contextParameters
-    ));
+    this.arContext = new Context(parameters.contextParameters);
 
-    // initialize it
-    window.addEventListener("arjs-video-loaded", function () {
-      _this.arContext.init(() => {
-        _this.arContext.arController.orientation = getSourceOrientation();
-        _this.arContext.arController.options.orientation =
-          getSourceOrientation();
-      });
-    });
-
-    function getSourceOrientation() {
-      if (!_this) {
-        return null;
-      }
-
+    const getSourceOrientation = () => {
       console.log(
         "actual source dimensions",
-        arSource.domElement.clientWidth,
-        arSource.domElement.clientHeight
+        this.arSource.domElement.clientWidth,
+        this.arSource.domElement.clientHeight
       );
 
-      if (arSource.domElement.clientWidth > arSource.domElement.clientHeight) {
+      if (
+        this.arSource.domElement.clientWidth >
+        this.arSource.domElement.clientHeight
+      ) {
         console.log("source orientation", "landscape");
         return "landscape";
       } else {
         console.log("source orientation", "portrait");
         return "portrait";
       }
-    }
+    };
 
-    arContext.addEventListener("initialized", function (event) {
-      arSource.onResize(
-        arContext,
-        _this.parameters.renderer,
-        _this.parameters.camera
-      );
+    // initialize it
+    window.addEventListener("arjs-video-loaded", () => {
+      this.arContext.init(() => {
+        this.arContext.arController.orientation = getSourceOrientation();
+        this.arContext.arController.options.orientation =
+          getSourceOrientation();
+      });
     });
 
-    //////////////////////////////////////////////////////////////////////////////
-    //		update function
-    //////////////////////////////////////////////////////////////////////////////
-    // update artoolkit on every frame
-    this.update = function () {
-      if (arSource.ready === false) return;
+    this.arContext.addEventListener("initialized", (event) => {
+      this.arSource.onResize(
+        this.arContext,
+        this.parameters.renderer,
+        this.parameters.camera
+      );
+    });
+  }
 
-      arContext.update(arSource.domElement);
-    };
+  // backward emulation
+  get renderer() {
+    console.warn("use .parameters.renderer renderer");
+
+    return this.parameters.renderer;
+  }
+
+  get camera() {
+    console.warn("use .parameters.camera instead");
+
+    return this.parameters.camera;
+  }
+  get scene() {
+    console.warn("use .parameters.scene instead");
+
+    return this.parameters.scene;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //		update function
+  //////////////////////////////////////////////////////////////////////////////
+  // update artoolkit on every frame
+  update() {
+    if (this.arSource?.ready === false) return;
+
+    this.arContext.update(arSource.domElement);
   }
 
   onResize() {

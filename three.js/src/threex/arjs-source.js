@@ -21,36 +21,33 @@ class Source {
   };
 
   constructor(parameters) {
-    var _this = this;
-
     //////////////////////////////////////////////////////////////////////////////
     //		setParameters
     //////////////////////////////////////////////////////////////////////////////
-    setParameters(parameters);
-    function setParameters(parameters) {
+    const setParameters = (parameters) => {
       if (parameters === undefined) return;
-      for (var key in parameters) {
+      for (const key in parameters) {
         const newValue = parameters[key];
 
         if (newValue === undefined) {
-          console.warn(
-            "ArToolkitSource: '" + key + "' parameter is undefined."
-          );
+          console.warn(`ArToolkitSource: '${key}' parameter is undefined.`);
           continue;
         }
 
-        var currentValue = _this.parameters[key];
+        const currentValue = this.parameters[key];
 
         if (currentValue === undefined) {
           console.warn(
-            "ArToolkitSource: '" + key + "' is not a property of this material."
+            `ArToolkitSource: '${key}' is not a property of this material.`
           );
           continue;
         }
 
-        _this.parameters[key] = newValue;
+        this.parameters[key] = newValue;
       }
-    }
+    };
+
+    setParameters(parameters);
   }
 
   onInitialClick() {
@@ -64,17 +61,39 @@ class Source {
   //////////////////////////////////////////////////////////////////////////////
 
   init(onReady, onError) {
-    var _this = this;
+    const onSourceReady = () => {
+      if (!this.domElement) {
+        return;
+      }
 
+      document.body.appendChild(this.domElement);
+      window.dispatchEvent(
+        new CustomEvent("arjs-video-loaded", {
+          detail: {
+            component: document.querySelector("#arjs-video"),
+          },
+        })
+      );
+
+      this.ready = true;
+
+      if (onReady != null) {
+        onReady();
+      }
+    };
+
+    let domElement;
     if (this.parameters.sourceType === "image") {
-      var domElement = this._initSourceImage(onSourceReady, onError);
+      domElement = this._initSourceImage(onSourceReady, onError);
     } else if (this.parameters.sourceType === "video") {
-      var domElement = this._initSourceVideo(onSourceReady, onError);
+      domElement = this._initSourceVideo(onSourceReady, onError);
     } else if (this.parameters.sourceType === "webcam") {
-      // var domElement = this._initSourceWebcamOld(onSourceReady)
-      var domElement = this._initSourceWebcam(onSourceReady, onError);
+      // domElement = this._initSourceWebcamOld(onSourceReady)
+      domElement = this._initSourceWebcam(onSourceReady, onError);
     } else {
       console.assert(false);
+
+      return;
     }
 
     // attach
@@ -86,24 +105,6 @@ class Source {
     this.domElement.setAttribute("id", "arjs-video");
 
     return this;
-    function onSourceReady() {
-      if (!_this.domElement) {
-        return;
-      }
-
-      document.body.appendChild(_this.domElement);
-      window.dispatchEvent(
-        new CustomEvent("arjs-video-loaded", {
-          detail: {
-            component: document.querySelector("#arjs-video"),
-          },
-        })
-      );
-
-      _this.ready = true;
-
-      onReady && onReady();
-    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +113,7 @@ class Source {
 
   _initSourceImage(onReady) {
     // TODO make it static
-    var domElement = document.createElement("img");
+    const domElement = document.createElement("img");
     domElement.src = this.parameters.sourceUrl;
 
     domElement.width = this.parameters.sourceWidth;
@@ -121,6 +122,7 @@ class Source {
     domElement.style.height = this.parameters.displayHeight + "px";
 
     domElement.onload = onReady;
+
     return domElement;
   }
 
@@ -130,7 +132,7 @@ class Source {
 
   _initSourceVideo(onReady) {
     // TODO make it static
-    var domElement = document.createElement("video");
+    const domElement = document.createElement("video");
     domElement.src = this.parameters.sourceUrl;
 
     domElement.style.objectFit = "initial";
@@ -152,6 +154,7 @@ class Source {
     domElement.style.height = this.parameters.displayHeight + "px";
 
     domElement.onloadeddata = onReady;
+
     return domElement;
   }
 
@@ -160,30 +163,24 @@ class Source {
   ////////////////////////////////////////////////////////////////////////////////
 
   _initSourceWebcam(onReady, onError) {
-    var _this = this;
-
     // init default value
-    onError =
-      onError ||
-      function (error) {
-        var event = new CustomEvent("camera-error", { error: error });
+    if (onError == null) {
+      onError = (error) => {
+        const event = new CustomEvent("camera-error", { error: error });
         window.dispatchEvent(event);
 
         setTimeout(() => {
           if (!document.getElementById("error-popup")) {
-            var errorPopup = document.createElement("div");
-            errorPopup.innerHTML =
-              "Webcam Error\nName: " +
-              error.name +
-              "\nMessage: " +
-              error.message;
+            const errorPopup = document.createElement("div");
+            errorPopup.innerHTML = `Webcam Error\nName: ${error.name} \nMessage: ${error.message}`;
             errorPopup.setAttribute("id", "error-popup");
             document.body.appendChild(errorPopup);
           }
         }, 1000);
       };
+    }
 
-    var domElement = document.createElement("video");
+    const domElement = document.createElement("video");
     domElement.setAttribute("autoplay", "");
     domElement.setAttribute("muted", "");
     domElement.setAttribute("playsinline", "");
@@ -196,16 +193,21 @@ class Source {
       navigator.mediaDevices.enumerateDevices === undefined ||
       navigator.mediaDevices.getUserMedia === undefined
     ) {
-      if (navigator.mediaDevices === undefined)
-        var fctName = "navigator.mediaDevices";
-      else if (navigator.mediaDevices.enumerateDevices === undefined)
-        var fctName = "navigator.mediaDevices.enumerateDevices";
-      else if (navigator.mediaDevices.getUserMedia === undefined)
-        var fctName = "navigator.mediaDevices.getUserMedia";
-      else console.assert(false);
+      let fctName;
+      if (navigator.mediaDevices === undefined) {
+        fctName = "navigator.mediaDevices";
+      } else if (navigator.mediaDevices.enumerateDevices === undefined) {
+        fctName = "navigator.mediaDevices.enumerateDevices";
+      } else if (navigator.mediaDevices.getUserMedia === undefined) {
+        fctName = "navigator.mediaDevices.getUserMedia";
+      } else {
+        console.assert(false);
+
+        return;
+      }
       onError({
         name: "",
-        message: "WebRTC issue-! " + fctName + " not present in your browser",
+        message: `WebRTC issue-! ${fctName} not present in your browser`,
       });
       return null;
     }
@@ -213,55 +215,55 @@ class Source {
     // get available devices
     navigator.mediaDevices
       .enumerateDevices()
-      .then(function (devices) {
-        var userMediaConstraints = {
+      .then((devices) => {
+        const userMediaConstraints = {
           audio: false,
           video: {
             facingMode: "environment",
             width: {
-              ideal: _this.parameters.sourceWidth,
+              ideal: this.parameters.sourceWidth,
               // min: 1024,
               // max: 1920
             },
             height: {
-              ideal: _this.parameters.sourceHeight,
+              ideal: this.parameters.sourceHeight,
               // min: 776,
               // max: 1080
             },
           },
         };
 
-        if (null !== _this.parameters.deviceId) {
+        if (this.parameters.deviceId !== null) {
           userMediaConstraints.video.deviceId = {
-            exact: _this.parameters.deviceId,
+            exact: this.parameters.deviceId,
           };
         }
 
         // get a device which satisfy the constraints
         navigator.mediaDevices
           .getUserMedia(userMediaConstraints)
-          .then(function success(stream) {
+          .then((stream) => {
             // set the .src of the domElement
             domElement.srcObject = stream;
 
-            var event = new CustomEvent("camera-init", { stream: stream });
+            const event = new CustomEvent("camera-init", { stream: stream });
             window.dispatchEvent(event);
 
             // start the video on first click if not started automatically
-            document.body.addEventListener("click", _this.onInitialClick, {
+            document.body.addEventListener("click", this.onInitialClick, {
               once: true,
             });
 
             onReady();
           })
-          .catch(function (error) {
+          .catch((error) => {
             onError({
               name: error.name,
               message: error.message,
             });
           });
       })
-      .catch(function (error) {
+      .catch((error) => {
         onError({
           message: error.message,
         });
@@ -303,7 +305,7 @@ class Source {
   ////////////////////////////////////////////////////////////////////////////////
 
   _disposeSourceImage() {
-    var domElement = document.querySelector("#arjs-video");
+    const domElement = document.querySelector("#arjs-video");
 
     if (!domElement) {
       return;
@@ -317,7 +319,7 @@ class Source {
   ////////////////////////////////////////////////////////////////////////////////
 
   _disposeSourceVideo() {
-    var domElement = document.querySelector("#arjs-video");
+    const domElement = document.querySelector("#arjs-video");
 
     if (!domElement) {
       return;
@@ -336,7 +338,7 @@ class Source {
   ////////////////////////////////////////////////////////////////////////////////
 
   _disposeSourceWebcam() {
-    var domElement = document.querySelector("#arjs-video");
+    const domElement = document.querySelector("#arjs-video");
 
     if (!domElement) {
       return;
@@ -355,19 +357,19 @@ class Source {
   //////////////////////////////////////////////////////////////////////////////
 
   hasMobileTorch() {
-    var stream = arToolkitSource.domElement.srcObject;
+    const stream = arToolkitSource.domElement.srcObject;
     if (stream instanceof MediaStream === false) return false;
 
     if (this._currentTorchStatus === undefined) {
       this._currentTorchStatus = false;
     }
 
-    var videoTrack = stream.getVideoTracks()[0];
+    const videoTrack = stream.getVideoTracks()[0];
 
     // if videoTrack.getCapabilities() doesnt exist, return false now
     if (videoTrack.getCapabilities === undefined) return false;
 
-    var capabilities = videoTrack.getCapabilities();
+    const capabilities = videoTrack.getCapabilities();
 
     return capabilities.torch ? true : false;
   }
@@ -380,10 +382,10 @@ class Source {
     // sanity check
     console.assert(this.hasMobileTorch() === true);
 
-    var stream = arToolkitSource.domElement.srcObject;
+    const stream = arToolkitSource.domElement.srcObject;
     if (stream instanceof MediaStream === false) {
       if (!document.getElementById("error-popup")) {
-        var errorPopup = document.createElement("div");
+        const errorPopup = document.createElement("div");
         errorPopup.innerHTML =
           "enabling mobile torch is available only on webcam";
         errorPopup.setAttribute("id", "error-popup");
@@ -396,16 +398,17 @@ class Source {
       this._currentTorchStatus = false;
     }
 
-    var videoTrack = stream.getVideoTracks()[0];
-    var capabilities = videoTrack.getCapabilities();
+    const videoTrack = stream.getVideoTracks()[0];
+    const capabilities = videoTrack.getCapabilities();
 
     if (!capabilities.torch) {
       if (!document.getElementById("error-popup")) {
-        var errorPopup = document.createElement("div");
+        const errorPopup = document.createElement("div");
         errorPopup.innerHTML = "no mobile torch is available on your camera";
         errorPopup.setAttribute("id", "error-popup");
         document.body.appendChild(errorPopup);
       }
+
       return;
     }
 
@@ -419,7 +422,7 @@ class Source {
           },
         ],
       })
-      .catch(function (error) {
+      .catch((error) => {
         console.log(error);
       });
   }
@@ -437,33 +440,36 @@ class Source {
   ////////////////////////////////////////////////////////////////////////////////
 
   onResizeElement() {
-    var _this = this;
-    var screenWidth = window.innerWidth;
-    var screenHeight = window.innerHeight;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
 
     // sanity check
     console.assert(arguments.length === 0);
 
     // compute sourceWidth, sourceHeight
+    let sourceWidth;
+    let sourceHeight;
     if (this.domElement.nodeName === "IMG") {
-      var sourceWidth = this.domElement.naturalWidth;
-      var sourceHeight = this.domElement.naturalHeight;
+      sourceWidth = this.domElement.naturalWidth;
+      sourceHeight = this.domElement.naturalHeight;
     } else if (this.domElement.nodeName === "VIDEO") {
-      var sourceWidth = this.domElement.videoWidth;
-      var sourceHeight = this.domElement.videoHeight;
+      sourceWidth = this.domElement.videoWidth;
+      sourceHeight = this.domElement.videoHeight;
     } else {
       console.assert(false);
+
+      return;
     }
 
     // compute sourceAspect
-    var sourceAspect = sourceWidth / sourceHeight;
+    const sourceAspect = sourceWidth / sourceHeight;
     // compute screenAspect
-    var screenAspect = screenWidth / screenHeight;
+    const screenAspect = screenWidth / screenHeight;
 
     // if screenAspect < sourceAspect, then change the width, else change the height
     if (screenAspect < sourceAspect) {
       // compute newWidth and set .width/.marginLeft
-      var newWidth = sourceAspect * screenHeight;
+      const newWidth = sourceAspect * screenHeight;
       this.domElement.style.width = newWidth + "px";
       this.domElement.style.marginLeft = -(newWidth - screenWidth) / 2 + "px";
 
@@ -472,7 +478,7 @@ class Source {
       this.domElement.style.marginTop = "0px";
     } else {
       // compute newHeight and set .height/.marginTop
-      var newHeight = 1 / (sourceAspect / screenWidth);
+      const newHeight = 1 / (sourceAspect / screenWidth);
       this.domElement.style.height = newHeight + "px";
       this.domElement.style.marginTop = -(newHeight - screenHeight) / 2 + "px";
 
@@ -504,7 +510,7 @@ class Source {
         (parseInt(otherElement.style.height) * 4) / 3 + "px";
       otherElement.style.marginLeft =
         (window.innerWidth - parseInt(otherElement.style.width)) / 2 + "px";
-      otherElement.style.marginTop = 0;
+      otherElement.style.marginTop = "0px";
     }
   }
 
@@ -528,34 +534,40 @@ class Source {
       console.warn(
         "obsolete function arToolkitSource.onResize. Use arToolkitSource.onResizeElement"
       );
+
       return this.onResizeElement.apply(this, arguments);
     }
 
-    var trackingBackend = arToolkitContext.parameters.trackingBackend;
+    const trackingBackend = arToolkitContext.parameters.trackingBackend;
 
     // RESIZE DOMELEMENT
     if (trackingBackend === "artoolkit") {
       this.onResizeElement();
 
-      var isAframe = renderer.domElement.dataset.aframeCanvas ? true : false;
+      const isAframe = renderer.domElement.dataset.aframeCanvas ? true : false;
       if (isAframe === false) {
         this.copyElementSizeTo(renderer.domElement);
-      } else {
       }
 
       if (arToolkitContext.arController !== null) {
         this.copyElementSizeTo(arToolkitContext.arController.canvas);
       }
-    } else
+    } else {
       console.assert(false, "unhandled trackingBackend " + trackingBackend);
+
+      return;
+    }
 
     // UPDATE CAMERA
     if (trackingBackend === "artoolkit") {
       if (arToolkitContext.arController !== null) {
         camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
       }
-    } else
+    } else {
       console.assert(false, "unhandled trackingBackend " + trackingBackend);
+
+      return;
+    }
   }
 }
 

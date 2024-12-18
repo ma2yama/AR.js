@@ -4,42 +4,51 @@ import jsartoolkit from "jsartoolkit"; // TODO comment explanation
 const { ARController } = jsartoolkit;
 
 class Context {
+  // default to github page
+  static baseURL = "https://ar-js-org.github.io/AR.js/three.js/";
+  static REVISION = "3.4.5";
+
+  arController = null;
+
+  initialized = false;
+
+  // handle default parameters
+  parameters = {
+    // AR backend - ['artoolkit']
+    trackingBackend: "artoolkit",
+    // debug - true if one should display artoolkit debug canvas, false otherwise
+    debug: false,
+    // the mode of detection - ['color', 'color_and_matrix', 'mono', 'mono_and_matrix']
+    detectionMode: "mono",
+    // type of matrix code - valid iif detectionMode end with 'matrix' - [3x3, 3x3_HAMMING63, 3x3_PARITY65, 4x4, 4x4_BCH_13_9_3, 4x4_BCH_13_5_5]
+    matrixCodeType: "3x3",
+
+    // url of the camera parameters
+    cameraParametersUrl: this.baseURL + "../data/data/camera_para.dat",
+
+    // tune the maximum rate of pose detection in the source image
+    maxDetectionRate: 60,
+    // resolution of at which we detect pose in the source image
+    canvasWidth: 640,
+    canvasHeight: 480,
+
+    // the patternRatio inside the artoolkit marker - artoolkit only
+    patternRatio: 0.5,
+
+    // Labeling mode for markers - ['black_region', 'white_region']
+    // black_region: Black bordered markers on a white background, white_region: White bordered markers on a black background
+    labelingMode: "black_region",
+
+    // enable image smoothing or not for canvas copy - default to true
+    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
+    imageSmoothingEnabled: false,
+  };
+
+  _updatedAt = null;
+
+  _arMarkersControls = [];
+
   constructor(parameters) {
-    var _this = this;
-
-    _this._updatedAt = null;
-
-    // handle default parameters
-    this.parameters = {
-      // AR backend - ['artoolkit']
-      trackingBackend: "artoolkit",
-      // debug - true if one should display artoolkit debug canvas, false otherwise
-      debug: false,
-      // the mode of detection - ['color', 'color_and_matrix', 'mono', 'mono_and_matrix']
-      detectionMode: "mono",
-      // type of matrix code - valid iif detectionMode end with 'matrix' - [3x3, 3x3_HAMMING63, 3x3_PARITY65, 4x4, 4x4_BCH_13_9_3, 4x4_BCH_13_5_5]
-      matrixCodeType: "3x3",
-
-      // url of the camera parameters
-      cameraParametersUrl: Context.baseURL + "../data/data/camera_para.dat",
-
-      // tune the maximum rate of pose detection in the source image
-      maxDetectionRate: 60,
-      // resolution of at which we detect pose in the source image
-      canvasWidth: 640,
-      canvasHeight: 480,
-
-      // the patternRatio inside the artoolkit marker - artoolkit only
-      patternRatio: 0.5,
-
-      // Labeling mode for markers - ['black_region', 'white_region']
-      // black_region: Black bordered markers on a white background, white_region: White bordered markers on a black background
-      labelingMode: "black_region",
-
-      // enable image smoothing or not for canvas copy - default to true
-      // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
-      imageSmoothingEnabled: false,
-    };
     // parameters sanity check
     console.assert(
       ["artoolkit"].indexOf(this.parameters.trackingBackend) !== -1,
@@ -60,48 +69,37 @@ class Context {
       this.parameters.labelingMode
     );
 
-    this.arController = null;
-
-    _this.initialized = false;
-
-    this._arMarkersControls = [];
-
     //////////////////////////////////////////////////////////////////////////////
     //		setParameters
     //////////////////////////////////////////////////////////////////////////////
-    setParameters(parameters);
-    function setParameters(parameters) {
+    const setParameters = (parameters) => {
       if (parameters === undefined) return;
-      for (var key in parameters) {
-        var newValue = parameters[key];
+      for (const key in parameters) {
+        const newValue = parameters[key];
 
         if (newValue === undefined) {
-          console.warn("Context: '" + key + "' parameter is undefined.");
+          console.warn(`Context: '${key}' parameter is undefined.`);
           continue;
         }
 
-        var currentValue = _this.parameters[key];
+        const currentValue = this.parameters[key];
 
         if (currentValue === undefined) {
-          console.warn(
-            "Context: '" + key + "' is not a property of this material."
-          );
+          console.warn(`Context: '${key}' is not a property of this material.`);
           continue;
         }
 
-        _this.parameters[key] = newValue;
+        this.parameters[key] = newValue;
       }
-    }
+    };
+
+    setParameters(parameters);
   }
 
   dispatchEvent = THREE.EventDispatcher.prototype.dispatchEvent;
   addEventListener = THREE.EventDispatcher.prototype.addEventListener;
   hasEventListener = THREE.EventDispatcher.prototype.hasEventListener;
   removeEventListener = THREE.EventDispatcher.prototype.removeEventListener;
-
-  // default to github page
-  static baseURL = "https://ar-js-org.github.io/AR.js/three.js/";
-  static REVISION = "3.4.5";
 
   /**
    * Create a default camera for this trackingBackend
@@ -112,31 +110,38 @@ class Context {
     console.assert(false, "use ARjs.Utils.createDefaultCamera instead");
     // Create a camera
     if (trackingBackend === "artoolkit") {
-      var camera = new THREE.Camera();
-    } else console.assert(false);
-    return camera;
+      const camera = new THREE.Camera();
+      return camera;
+    } else {
+      console.assert(false);
+
+      return;
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
   //		init functions
   //////////////////////////////////////////////////////////////////////////////
   init(onCompleted) {
-    var _this = this;
-    if (this.parameters.trackingBackend === "artoolkit") {
-      this._initArtoolkit(done);
-    } else console.assert(false);
-    return;
-
-    function done() {
+    const done = () => {
       // dispatch event
-      _this.dispatchEvent({
+      this.dispatchEvent({
         type: "initialized",
       });
 
-      _this.initialized = true;
+      this.initialized = true;
 
-      onCompleted && onCompleted();
+      if (onCompleted != null) {
+        onCompleted();
+      }
+    };
+
+    if (this.parameters.trackingBackend === "artoolkit") {
+      this._initArtoolkit(done);
+    } else {
+      console.assert(false);
     }
+    return;
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -147,11 +152,12 @@ class Context {
     if (
       this.parameters.trackingBackend === "artoolkit" &&
       this.arController === null
-    )
+    ) {
       return false;
+    }
 
     // honor this.parameters.maxDetectionRate
-    var present = performance.now();
+    const present = performance.now();
     if (
       this._updatedAt !== null &&
       present - this._updatedAt < 1000 / this.parameters.maxDetectionRate
@@ -160,10 +166,10 @@ class Context {
     }
     this._updatedAt = present;
 
-    var prevVisibleMarkers = [];
+    const prevVisibleMarkers = [];
 
     // mark all markers to invisible before processing this frame
-    this._arMarkersControls.forEach(function (markerControls) {
+    this._arMarkersControls.forEach((markerControls) => {
       if (markerControls.object3d.visible) {
         prevVisibleMarkers.push(markerControls);
       }
@@ -177,6 +183,8 @@ class Context {
       this._updateArtoolkit(srcElement);
     } else {
       console.assert(false);
+
+      return false;
     }
 
     // dispatch event
@@ -185,9 +193,9 @@ class Context {
     });
 
     // After frame is processed, check visibility of each marker to determine if it was found or lost
-    this._arMarkersControls.forEach(function (markerControls) {
-      var wasVisible = prevVisibleMarkers.includes(markerControls);
-      var isVisible = markerControls.object3d.visible;
+    this._arMarkersControls.forEach((markerControls) => {
+      const wasVisible = prevVisibleMarkers.includes(markerControls);
+      const isVisible = markerControls.object3d.visible;
 
       if (isVisible === true && wasVisible === false) {
         window.dispatchEvent(
@@ -218,7 +226,7 @@ class Context {
 
   removeMarker(arMarkerControls) {
     console.assert(arMarkerControls instanceof ArMarkerControls);
-    var index = this._arMarkersControls.indexOf(arMarkerControls);
+    const index = this._arMarkersControls.indexOf(arMarkerControls);
     if (index < 0) {
       return;
     }
@@ -229,8 +237,6 @@ class Context {
   //		artoolkit specific
   //////////////////////////////////////////////////////////////////////////////
   _initArtoolkit(onCompleted) {
-    var _this = this;
-
     // set this._artoolkitProjectionAxisTransformMatrix to change artoolkit projection matrix axis to match usual webgl one
     this._artoolkitProjectionAxisTransformMatrix = new THREE.Matrix4();
     this._artoolkitProjectionAxisTransformMatrix.multiply(
@@ -242,24 +248,24 @@ class Context {
 
     // init controller
     ARController.initWithDimensions(
-      _this.parameters.canvasWidth,
-      _this.parameters.canvasHeight,
-      _this.parameters.cameraParametersUrl
+      this.parameters.canvasWidth,
+      this.parameters.canvasHeight,
+      this.parameters.cameraParametersUrl
     ).then((arController) => {
-      _this.arController = arController;
+      this.arController = arController;
 
       // honor this.parameters.imageSmoothingEnabled
       arController.ctx.mozImageSmoothingEnabled =
-        _this.parameters.imageSmoothingEnabled;
+        this.parameters.imageSmoothingEnabled;
       arController.ctx.webkitImageSmoothingEnabled =
-        _this.parameters.imageSmoothingEnabled;
+        this.parameters.imageSmoothingEnabled;
       arController.ctx.msImageSmoothingEnabled =
-        _this.parameters.imageSmoothingEnabled;
+        this.parameters.imageSmoothingEnabled;
       arController.ctx.imageSmoothingEnabled =
-        _this.parameters.imageSmoothingEnabled;
+        this.parameters.imageSmoothingEnabled;
 
       // honor this.parameters.debug
-      if (_this.parameters.debug === true) {
+      if (this.parameters.debug === true) {
         arController.debugSetup();
         arController.canvas.style.position = "absolute";
         arController.canvas.style.top = "0px";
@@ -269,7 +275,7 @@ class Context {
       }
 
       // setPatternDetectionMode
-      var detectionModes = {
+      const detectionModes = {
         color: arController.artoolkit.AR_TEMPLATE_MATCHING_COLOR,
         color_and_matrix:
           arController.artoolkit.AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX,
@@ -277,12 +283,12 @@ class Context {
         mono_and_matrix:
           arController.artoolkit.AR_TEMPLATE_MATCHING_MONO_AND_MATRIX,
       };
-      var detectionMode = detectionModes[_this.parameters.detectionMode];
+      const detectionMode = detectionModes[this.parameters.detectionMode];
       console.assert(detectionMode !== undefined);
       arController.setPatternDetectionMode(detectionMode);
 
       // setMatrixCodeType
-      var matrixCodeTypes = {
+      const matrixCodeTypes = {
         "3x3": arController.artoolkit.AR_MATRIX_CODE_3x3,
         "3x3_HAMMING63": arController.artoolkit.AR_MATRIX_CODE_3x3_HAMMING63,
         "3x3_PARITY65": arController.artoolkit.AR_MATRIX_CODE_3x3_PARITY65,
@@ -295,19 +301,19 @@ class Context {
         "5x5": arController.artoolkit.AR_MATRIX_CODE_5x5,
         "6x6": arController.artoolkit.AR_MATRIX_CODE_6x6,
       };
-      var matrixCodeType = matrixCodeTypes[_this.parameters.matrixCodeType];
+      const matrixCodeType = matrixCodeTypes[this.parameters.matrixCodeType];
       console.assert(matrixCodeType !== undefined);
       arController.setMatrixCodeType(matrixCodeType);
 
       // set the patternRatio for artoolkit
-      arController.setPattRatio(_this.parameters.patternRatio);
+      arController.setPattRatio(this.parameters.patternRatio);
 
       // set the labelingMode for artoolkit
-      var labelingModeTypes = {
+      const labelingModeTypes = {
         black_region: arController.artoolkit.AR_LABELING_BLACK_REGION,
         white_region: arController.artoolkit.AR_LABELING_WHITE_REGION,
       };
-      var labelingModeType = labelingModeTypes[_this.parameters.labelingMode];
+      const labelingModeType = labelingModeTypes[this.parameters.labelingMode];
       console.assert(labelingModeType !== undefined);
       arController.setLabelingMode(labelingModeType);
 
@@ -338,8 +344,8 @@ class Context {
     );
 
     // get projectionMatrixArr from artoolkit
-    var projectionMatrixArr = this.arController.getCameraMatrix();
-    var projectionMatrix = new THREE.Matrix4().fromArray(projectionMatrixArr);
+    const projectionMatrixArr = this.arController.getCameraMatrix();
+    const projectionMatrix = new THREE.Matrix4().fromArray(projectionMatrixArr);
 
     // projectionMatrix.multiply(this._artoolkitProjectionAxisTransformMatrix)
     // return the result
@@ -364,16 +370,12 @@ class Context {
     this._arMarkersControls = [];
 
     // cameraParam
-    if (
-      this.arController &&
-      this.arController.cameraParam &&
-      this.arController.cameraParam.dispose
-    ) {
+    if (this.arController?.cameraParam?.dispose != null) {
       this.arController.cameraParam.dispose();
     }
 
     // ARController
-    if (this.arController && this.arController.dispose) {
+    if (this.arController?.dispose != null) {
       this.arController.dispose();
     }
     this.arController = null;
