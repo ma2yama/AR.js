@@ -1,29 +1,65 @@
 import * as THREE from "three";
-import Source from "../threex/arjs-source";
-import Context from "../threex/arjs-context"; // TODO context build-dependent
+import Source, { ArToolkitSourceParameters } from "../threex/arjs-source";
+import Context, { ArToolkitContextParameters } from "../threex/arjs-context"; // TODO context build-dependent
 
+export interface ArJsSessionParameters {
+  renderer: THREE.WebGLRenderer | null;
+  camera: THREE.Camera | null;
+  scene: THREE.Scene | null;
+  sourceParameters?: ArToolkitSourceParameters;
+  contextParameters?: ArToolkitContextParameters;
+}
+
+type ArJsSessionParameterKeys = keyof ArJsSessionParameters;
+
+function isArJsSessionParameterKeys(
+  arg: unknown,
+): arg is ArJsSessionParameterKeys {
+  const event = arg as ArJsSessionParameterKeys;
+  const keys = [
+    'renderer',
+    'camera',
+    'scene',
+    'sourceParameters',
+    'contextParameters',
+  ];
+
+  return keys.includes(event);
+}
 /**
  *  * define a Session
  *
  * @param {Object} parameters - parameters for this session
  */
 class Session {
+  arSource: Source;
+  arContext: Context;
+
   // handle default parameters
-  parameters = {
+  parameters: ArJsSessionParameters = {
     renderer: null,
     camera: null,
     scene: null,
-    sourceParameters: {},
-    contextParameters: {},
+    sourceParameters: undefined,
+    contextParameters: undefined,
   };
 
-  constructor(parameters) {
+  constructor(parameters: ArJsSessionParameters) {
     //////////////////////////////////////////////////////////////////////////////
     //		setParameters
     //////////////////////////////////////////////////////////////////////////////
-    const setParameters = (parameters) => {
+    const setProperty = <K extends keyof ArJsSessionParameters>(
+      key: K,
+      value: ArJsSessionParameters[K],
+    ) => {
+      this.parameters[key] = value;
+    };
+
+    const setParameters = (parameters?: ArJsSessionParameters) => {
       if (parameters === undefined) return;
       for (const key in parameters) {
+        if (!isArJsSessionParameterKeys(key)) continue;
+
         const newValue = parameters[key];
 
         if (newValue === undefined) {
@@ -40,7 +76,7 @@ class Session {
           continue;
         }
 
-        this.parameters[key] = newValue;
+        setProperty(key, newValue);
       }
     };
 
@@ -56,7 +92,7 @@ class Session {
       "AR.js",
       Context.REVISION,
       "- trackingBackend:",
-      parameters.contextParameters.trackingBackend
+      parameters.contextParameters?.trackingBackend
     );
 
     //////////////////////////////////////////////////////////////////////////////
@@ -65,6 +101,10 @@ class Session {
     this.arSource = new Source(parameters.sourceParameters);
 
     this.arSource.init(() => {
+      if (this.parameters.renderer == null || this.parameters.camera == null) {
+        return;
+      }
+
       this.arSource.onResize(
         this.arContext,
         this.parameters.renderer,
@@ -74,6 +114,10 @@ class Session {
 
     // handle resize
     window.addEventListener("resize", () => {
+      if (this.parameters.renderer == null || this.parameters.camera == null) {
+        return;
+      }
+
       this.arSource.onResize(
         this.arContext,
         this.parameters.renderer,
@@ -89,6 +133,10 @@ class Session {
     this.arContext = new Context(parameters.contextParameters);
 
     const getSourceOrientation = () => {
+      if (this.arSource.domElement == null) {
+        return;
+      }
+
       console.log(
         "actual source dimensions",
         this.arSource.domElement.clientWidth,
@@ -109,14 +157,24 @@ class Session {
 
     // initialize it
     window.addEventListener("arjs-video-loaded", () => {
+      const arContext = this.arContext;
+
       this.arContext.init(() => {
-        this.arContext.arController.orientation = getSourceOrientation();
-        this.arContext.arController.options.orientation =
-          getSourceOrientation();
+        if (arContext.arController == null) return;
+
+        const orientation = getSourceOrientation();
+        if (orientation == null) return;
+
+        arContext.arController.orientation = orientation;
+        arContext.arController.options.orientation = orientation;
       });
     });
 
     this.arContext.addEventListener("initialized", (event) => {
+      if (this.parameters.renderer == null || this.parameters.camera == null) {
+        return;
+      }
+
       this.arSource.onResize(
         this.arContext,
         this.parameters.renderer,
@@ -148,12 +206,18 @@ class Session {
   //////////////////////////////////////////////////////////////////////////////
   // update artoolkit on every frame
   update() {
-    if (this.arSource?.ready === false) return;
+    if (this.arSource?.ready === false || this.arSource?.domElement == null) {
+      return;
+    }
 
-    this.arContext.update(arSource.domElement);
+    this.arContext.update(this.arSource.domElement);
   }
 
   onResize() {
+    if (this.parameters.renderer == null || this.parameters.camera == null) {
+      return;
+    }
+
     this.arSource.onResize(
       this.arContext,
       this.parameters.renderer,
