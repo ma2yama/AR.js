@@ -161,7 +161,6 @@ class Source {
     } else if (this.parameters.sourceType === 'video') {
       domElement = this._initSourceVideo(onSourceReady);
     } else if (this.parameters.sourceType === 'webcam') {
-      // domElement = this._initSourceWebcamOld(onSourceReady)
       domElement = this._initSourceWebcam(onSourceReady, onError);
     } else {
       console.assert(false);
@@ -312,13 +311,9 @@ class Source {
           facingMode: 'environment',
           width: {
             ideal: this.parameters.sourceWidth,
-            // min: 1024,
-            // max: 1920
           },
           height: {
             ideal: this.parameters.sourceHeight,
-            // min: 776,
-            // max: 1080
           },
         };
 
@@ -606,14 +601,6 @@ class Source {
     }
   }
 
-  /*
-  copyElementSizeTo(otherElement) {
-    otherElement.style.width = this.domElement.style.width
-    otherElement.style.height = this.domElement.style.height
-    otherElement.style.marginLeft = this.domElement.style.marginLeft
-    otherElement.style.marginTop = this.domElement.style.marginTop
-  }
-  */
   copyElementSizeTo(otherElement: HTMLElement): void {
     if (!this.domElement) {
       return;
