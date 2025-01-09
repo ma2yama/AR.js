@@ -20,6 +20,9 @@ const Source = function (parameters) {
     // resolution displayed for the source
     displayWidth: 640,
     displayHeight: 480,
+
+    // Element that is the parent of video
+    parent: null,
   };
   //////////////////////////////////////////////////////////////////////////////
   //		setParameters
@@ -86,7 +89,11 @@ Source.prototype.init = function (onReady, onError) {
       return;
     }
 
-    document.body.appendChild(_this.domElement);
+    if (this.parameters.parent == null) {
+      document.body.appendChild(_this.domElement);
+    } else {
+      this.parameters.parent.appendChild(this.domElement);
+    }
     window.dispatchEvent(
       new CustomEvent("arjs-video-loaded", {
         detail: {
@@ -425,8 +432,14 @@ Source.prototype.domElementHeight = function () {
 
 Source.prototype.onResizeElement = function () {
   var _this = this;
-  var screenWidth = window.innerWidth;
-  var screenHeight = window.innerHeight;
+  if (_this.parameters.parent == null) {
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
+  } else {
+    const rect = this.parameters.parent.getBoundingClientRect();
+    var screenWidth = rect.width;
+    var screenHeight = rect.height;
+  }
 
   // sanity check
   console.assert(arguments.length === 0);
@@ -478,7 +491,17 @@ Source.prototype.copyElementSizeTo = function(otherElement){
 */
 
 Source.prototype.copyElementSizeTo = function (otherElement) {
-  if (window.innerWidth > window.innerHeight) {
+  var _this = this;
+  if (_this.parameters.parent == null) {
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
+  } else {
+    const rect = this.parameters.parent.getBoundingClientRect();
+    var screenWidth = rect.width;
+    var screenHeight = rect.height;
+  }
+
+  if (screenWidth > screenHeight) {
     //landscape
     otherElement.style.width = this.domElement.style.width;
     otherElement.style.height = this.domElement.style.height;
@@ -490,7 +513,7 @@ Source.prototype.copyElementSizeTo = function (otherElement) {
     otherElement.style.width =
       (parseInt(otherElement.style.height) * 4) / 3 + "px";
     otherElement.style.marginLeft =
-      (window.innerWidth - parseInt(otherElement.style.width)) / 2 + "px";
+      (screenWidth - parseInt(otherElement.style.width)) / 2 + "px";
     otherElement.style.marginTop = 0;
   }
 };
