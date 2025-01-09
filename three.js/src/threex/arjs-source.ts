@@ -11,6 +11,7 @@ export interface ArToolkitSourceParameters {
   sourceHeight: number;
   displayWidth: number;
   displayHeight: number;
+  parent: HTMLElement | null;
 }
 
 interface ArToolkitError {
@@ -40,6 +41,7 @@ function isArToolkitSourceParameterKeys(
     'sourceHeight',
     'displayWidth',
     'displayHeight',
+    'parent',
   ];
 
   return keys.includes(event);
@@ -73,6 +75,9 @@ class Source {
     // resolution displayed for the source
     displayWidth: 640,
     displayHeight: 480,
+
+    // Element that is the parent of video
+    parent: null,
   };
 
   _currentTorchStatus: boolean | undefined;
@@ -139,7 +144,12 @@ class Source {
         return;
       }
 
-      document.body.appendChild(this.domElement);
+      if (this.parameters.parent == null) {
+        document.body.appendChild(this.domElement);
+      } else {
+        this.parameters.parent.appendChild(this.domElement);
+      }
+
       window.dispatchEvent(
         new CustomEvent('arjs-video-loaded', {
           detail: {
@@ -553,8 +563,16 @@ class Source {
       return;
     }
 
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    let screenWidth;
+    let screenHeight;
+    if (this.parameters.parent == null) {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+    } else {
+      const rect = this.parameters.parent.getBoundingClientRect();
+      screenWidth = rect.width;
+      screenHeight = rect.height;
+    }
 
     // sanity check
     console.assert(arguments.length === 0);
@@ -606,7 +624,18 @@ class Source {
       return;
     }
 
-    if (window.innerWidth > window.innerHeight) {
+    let screenWidth;
+    let screenHeight;
+    if (this.parameters.parent == null) {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+    } else {
+      const rect = this.parameters.parent.getBoundingClientRect();
+      screenWidth = rect.width;
+      screenHeight = rect.height;
+    }
+
+    if (screenWidth > screenHeight) {
       //landscape
       otherElement.style.width = this.domElement.style.width;
       otherElement.style.height = this.domElement.style.height;
@@ -618,7 +647,7 @@ class Source {
       otherElement.style.width =
         (parseInt(otherElement.style.height) * 4) / 3 + 'px';
       otherElement.style.marginLeft =
-        (window.innerWidth - parseInt(otherElement.style.width)) / 2 + 'px';
+        (screenWidth - parseInt(otherElement.style.width)) / 2 + 'px';
       otherElement.style.marginTop = '0px';
     }
   }
