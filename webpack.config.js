@@ -41,7 +41,7 @@ module.exports = (env, argv) => {
   return [{
     name: 'threex',
     devtool,
-    entry: './three.js/src/index-threex.js',
+    entry: './three.js/src/index-threex.ts',
     output: {
       library: 'THREEx',
       path: path.resolve(__dirname, 'three.js/build'),
@@ -50,6 +50,7 @@ module.exports = (env, argv) => {
       globalObject: 'this'
     },
     resolve: {
+      extensions: ['.ts', '.js'],
       alias: {
         jsartoolkit: '@ar-js-org/artoolkit5-js',
         threexArmarkercontrols$: path.resolve(__dirname, 'three.js/src/threex/arjs-markercontrols.js')
@@ -92,7 +93,7 @@ module.exports = (env, argv) => {
   {
     name: 'ar.js',
     devtool,
-    entry: './three.js/src/index-arjs.js',
+    entry: './three.js/src/index-arjs.ts',
     output: {
       library: 'ARjs',
       path: path.resolve(__dirname, 'three.js/build'),
@@ -101,6 +102,7 @@ module.exports = (env, argv) => {
       globalObject: 'this'
     },
     resolve: {
+      extensions: ['.ts', '.js'],
       alias: {
         jsartoolkit: '@ar-js-org/artoolkit5-js',
         threexArmarkercontrols$: path.resolve(__dirname, 'three.js/src/threex/arjs-markercontrols.js')
