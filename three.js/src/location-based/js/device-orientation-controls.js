@@ -16,7 +16,7 @@ class DeviceOrientationControls extends EventDispatcher {
 
     if (window.isSecureContext === false) {
       console.error(
-        "THREE.DeviceOrientationControls: DeviceOrientationEvent is only available in secure contexts (https)",
+        "THREE.DeviceOrientationControls: DeviceOrientationEvent is only available in secure contexts (https)"
       );
     }
 
@@ -44,12 +44,18 @@ class DeviceOrientationControls extends EventDispatcher {
 
     this.smoothingFactor = 1;
 
+    this.isIpad =
+      /iPad/i.test(navigator.userAgent) ||
+      (/Macintosh/i.test(navigator.userAgent) && "ontouchstart" in window);
+
     const onDeviceOrientationChangeEvent = function (event) {
       scope.deviceOrientation = event;
     };
 
     const onScreenOrientationChangeEvent = function () {
-      scope.screenOrientation = window.orientation || 0;
+      scope.screenOrientation = scope.isIpad
+        ? 90 - window.screen.orientation.angle
+        : window.screen.orientation.angle || 0;
     };
 
     // The angles alpha, beta and gamma form a set of intrinsic Tait-Bryan angles of type Z-X'-Y''
@@ -59,7 +65,7 @@ class DeviceOrientationControls extends EventDispatcher {
       alpha,
       beta,
       gamma,
-      orient,
+      orient
     ) {
       _euler.set(beta, alpha, -gamma, "YXZ"); // 'ZXY' for the device, but 'YXZ' for us
 
@@ -84,28 +90,28 @@ class DeviceOrientationControls extends EventDispatcher {
             if (response === "granted") {
               window.addEventListener(
                 "orientationchange",
-                onScreenOrientationChangeEvent,
+                onScreenOrientationChangeEvent
               );
               window.addEventListener(
                 scope.orientationChangeEventName,
-                onDeviceOrientationChangeEvent,
+                onDeviceOrientationChangeEvent
               );
             }
           })
           .catch(function (error) {
             console.error(
               "THREE.DeviceOrientationControls: Unable to use DeviceOrientation API:",
-              error,
+              error
             );
           });
       } else {
         window.addEventListener(
           "orientationchange",
-          onScreenOrientationChangeEvent,
+          onScreenOrientationChangeEvent
         );
         window.addEventListener(
           scope.orientationChangeEventName,
-          onDeviceOrientationChangeEvent,
+          onDeviceOrientationChangeEvent
         );
       }
 
@@ -115,11 +121,11 @@ class DeviceOrientationControls extends EventDispatcher {
     this.disconnect = function () {
       window.removeEventListener(
         "orientationchange",
-        onScreenOrientationChangeEvent,
+        onScreenOrientationChangeEvent
       );
       window.removeEventListener(
         scope.orientationChangeEventName,
-        onDeviceOrientationChangeEvent,
+        onDeviceOrientationChangeEvent
       );
 
       scope.enabled = false;
@@ -149,18 +155,18 @@ class DeviceOrientationControls extends EventDispatcher {
             alpha = this._getSmoothedAngle(
               alpha,
               this.lastOrientation.alpha,
-              k,
+              k
             );
             beta = this._getSmoothedAngle(
               beta + Math.PI,
               this.lastOrientation.beta,
-              k,
+              k
             );
             gamma = this._getSmoothedAngle(
               gamma + this.HALF_PI,
               this.lastOrientation.gamma,
               k,
-              Math.PI,
+              Math.PI
             );
           } else {
             beta += Math.PI;
@@ -179,7 +185,7 @@ class DeviceOrientationControls extends EventDispatcher {
           alpha,
           this.smoothingFactor < 1 ? beta - Math.PI : beta,
           this.smoothingFactor < 1 ? gamma - this.HALF_PI : gamma,
-          orient,
+          orient
         );
 
         if (8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
