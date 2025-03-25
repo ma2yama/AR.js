@@ -108,17 +108,17 @@ const Anchor = function (arSession, markerParameters) {
     // TODO put subMarkerControls visibility into an external file. with 2 handling for three.js and babylon.js
     // create ArMarkerHelper - useful to debug - super three.js specific
     var markerHelpers = [];
-    multiMarkerControls.subMarkersControls.forEach(
-      function (subMarkerControls) {
-        // add an helper to visuable each sub-marker
-        var markerHelper = new ArMarkerHelper(subMarkerControls);
-        markerHelper.object3d.visible = false;
-        // subMarkerControls.object3d.add( markerHelper.object3d )
-        subMarkerControls.object3d.add(markerHelper.object3d);
-        // add it to markerHelpers
-        markerHelpers.push(markerHelper);
-      },
-    );
+    multiMarkerControls.subMarkersControls.forEach(function (
+      subMarkerControls,
+    ) {
+      // add an helper to visuable each sub-marker
+      var markerHelper = new ArMarkerHelper(subMarkerControls);
+      markerHelper.object3d.visible = false;
+      // subMarkerControls.object3d.add( markerHelper.object3d )
+      subMarkerControls.object3d.add(markerHelper.object3d);
+      // add it to markerHelpers
+      markerHelpers.push(markerHelper);
+    });
     // define API specific to markersArea
     this.markersArea = {};
     this.markersArea.setSubMarkersVisibility = function (visible) {

@@ -30,11 +30,11 @@ MarkersAreaLearning.prototype._onSourceProcessed = function () {
   if (this.enabled === false) return;
 
   // keep only the visible markers
-  var visibleMarkerControls = this.subMarkersControls.filter(
-    function (markerControls) {
-      return markerControls.object3d.visible === true;
-    },
-  );
+  var visibleMarkerControls = this.subMarkersControls.filter(function (
+    markerControls,
+  ) {
+    return markerControls.object3d.visible === true;
+  });
 
   var count = Object.keys(visibleMarkerControls).length;
 
@@ -318,12 +318,12 @@ MarkersAreaLearning.prototype.toJSON = function () {
   if (humanReadable === true) {
     var tmp = JSON.parse(strJSON);
     tmp.subMarkersControls.forEach(function (markerControls) {
-      markerControls.poseMatrix = markerControls.poseMatrix.map(
-        function (value) {
-          var roundingFactor = 100;
-          return Math.round(value * roundingFactor) / roundingFactor;
-        },
-      );
+      markerControls.poseMatrix = markerControls.poseMatrix.map(function (
+        value,
+      ) {
+        var roundingFactor = 100;
+        return Math.round(value * roundingFactor) / roundingFactor;
+      });
     });
     strJSON = JSON.stringify(tmp, null, "\t");
   }

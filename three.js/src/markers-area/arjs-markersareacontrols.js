@@ -66,47 +66,48 @@ MarkersAreaControls.prototype._onSourceProcessed = function () {
   var firstQuaternion =
     _this.parameters.subMarkersControls[0].object3d.quaternion;
 
-  this.parameters.subMarkersControls.forEach(
-    function (markerControls, markerIndex) {
-      var markerObject3d = markerControls.object3d;
-      // if this marker is not visible, ignore it
-      if (markerObject3d.visible === false) return;
+  this.parameters.subMarkersControls.forEach(function (
+    markerControls,
+    markerIndex,
+  ) {
+    var markerObject3d = markerControls.object3d;
+    // if this marker is not visible, ignore it
+    if (markerObject3d.visible === false) return;
 
-      // transformation matrix of this.object3d according to this sub-markers
-      var matrix = markerObject3d.matrix.clone();
-      var markerPose = _this.parameters.subMarkerPoses[markerIndex];
-      matrix.multiply(new THREE.Matrix4().copy(markerPose).invert());
+    // transformation matrix of this.object3d according to this sub-markers
+    var matrix = markerObject3d.matrix.clone();
+    var markerPose = _this.parameters.subMarkerPoses[markerIndex];
+    matrix.multiply(new THREE.Matrix4().copy(markerPose).invert());
 
-      // decompose the matrix into .position, .quaternion, .scale
-      var position = new THREE.Vector3();
-      var quaternion = new THREE.Quaternion();
-      var scale = new THREE.Vector3();
-      matrix.decompose(position, quaternion, scale);
+    // decompose the matrix into .position, .quaternion, .scale
+    var position = new THREE.Vector3();
+    var quaternion = new THREE.Quaternion();
+    var scale = new THREE.Vector3();
+    matrix.decompose(position, quaternion, scale);
 
-      // http://wiki.unity3d.com/index.php/Averaging_Quaternions_and_Vectors
-      stats.count++;
+    // http://wiki.unity3d.com/index.php/Averaging_Quaternions_and_Vectors
+    stats.count++;
 
-      MarkersAreaControls.averageVector3(
-        stats.position.sum,
-        position,
-        stats.count,
-        stats.position.average,
-      );
-      MarkersAreaControls.averageQuaternion(
-        stats.quaternion.sum,
-        quaternion,
-        firstQuaternion,
-        stats.count,
-        stats.quaternion.average,
-      );
-      MarkersAreaControls.averageVector3(
-        stats.scale.sum,
-        scale,
-        stats.count,
-        stats.scale.average,
-      );
-    },
-  );
+    MarkersAreaControls.averageVector3(
+      stats.position.sum,
+      position,
+      stats.count,
+      stats.position.average,
+    );
+    MarkersAreaControls.averageQuaternion(
+      stats.quaternion.sum,
+      quaternion,
+      firstQuaternion,
+      stats.count,
+      stats.quaternion.average,
+    );
+    MarkersAreaControls.averageVector3(
+      stats.scale.sum,
+      scale,
+      stats.count,
+      stats.scale.average,
+    );
+  });
 
   // honor _this.object3d.visible
   if (stats.count > 0) {
@@ -314,12 +315,13 @@ MarkersAreaControls.prototype.updateSmoothedControls = function (
   }
   // count how many subMarkersControls are visible
   var nVisible = 0;
-  this.parameters.subMarkersControls.forEach(
-    function (markerControls, markerIndex) {
-      var markerObject3d = markerControls.object3d;
-      if (markerObject3d.visible === true) nVisible++;
-    },
-  );
+  this.parameters.subMarkersControls.forEach(function (
+    markerControls,
+    markerIndex,
+  ) {
+    var markerObject3d = markerControls.object3d;
+    if (markerObject3d.visible === true) nVisible++;
+  });
 
   // find the good lerpValues
   if (lerpsValues[nVisible - 1] !== undefined) {
