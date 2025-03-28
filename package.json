@@ -54,14 +54,14 @@
     "husky": "^9.1.7",
     "lint-staged": "15.4.3",
     "prettier": "^3.4.2",
+    "three": "^0.164.1",
     "webpack": "^5.97.1",
     "webpack-cli": "6.0.1",
     "worker-loader": "^3.0.8"
   },
   "dependencies": {
     "@ar-js-org/artoolkit5-js": "^0.3.1",
-    "aframe": "^1.6.0",
-    "three": "^0.164.0"
+    "aframe": "^1.6.0"
   },
   "lint-staged": {
     "*.js": "prettier --write"
