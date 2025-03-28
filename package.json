@@ -65,5 +65,8 @@
   },
   "lint-staged": {
     "*.js": "prettier --write"
+  },
+  "peerDependencies": {
+    "three": ">=0.164.1"
   }
 }
