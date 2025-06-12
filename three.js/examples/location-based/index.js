@@ -15,6 +15,11 @@ function main() {
 
     // You can change the minimum GPS accuracy needed to register a position - by default 1000m
     //const arjs = new LocationBased(scene, camera, { gpsMinAccuracy: 30 } );
+
+    // You can set the initial position
+    // const initialPosition = { longitude: 51.47816410406528, latitude:  -0.001540203696240924 };
+    // const arjs = new LocationBased(scene, camera, { initialPosition });
+
     const cam = new WebcamRenderer(renderer, '#video1');
 
     const mouseStep = THREE.MathUtils.degToRad(5);
