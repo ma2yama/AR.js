@@ -17,6 +17,11 @@ const _q1 = new Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // - PI/2 aro
 const _changeEvent = { type: "change" };
 
 class DeviceOrientationControls extends EventDispatcher {
+  /**
+   * Create an instance of DeviceOrientationControls.
+   * @param {Object} object - the object to attach the controls to
+   * (usually your Three.js camera)
+   */
   constructor(object) {
     super();
 
@@ -94,6 +99,10 @@ class DeviceOrientationControls extends EventDispatcher {
       quaternion.multiply(_q0.setFromAxisAngle(_zee, -orient)); // adjust for screen orientation
     };
 
+    /**
+     * Update the device orientation controls.
+     * Should be called from your three.js rendering/animation function.
+     */
     this.connect = function () {
       onScreenOrientationChangeEvent(); // run once on load
 
