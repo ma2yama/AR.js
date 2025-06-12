@@ -16,6 +16,7 @@ class LocationBased {
     this.initialPosition = null;
     this.initialPositionAsOrigin = options.initialPositionAsOrigin || false;
     this.useAltitude = options.useAltitude || false;
+    this.altitudeOffset = options.altitudeOffset || 0;
   }
 
   setProjection(proj) {
@@ -145,7 +146,7 @@ class LocationBased {
           position.coords.longitude,
           position.coords.latitude,
           this.useAltitude && position.coords.altitude != null
-            ? position.coords.altitude
+            ? position.coords.altitude + this.altitudeOffset
             : undefined,
         );
 

@@ -11,7 +11,8 @@ function main() {
     const geom = new THREE.BoxGeometry(20,20,20);
 
     const useAltitude = false;
-    const arjs = new LocationBased(scene, camera, { useAltitude });
+    const altitudeOffset = 0;
+    const arjs = new LocationBased(scene, camera, { useAltitude, altitudeOffset });
 
     // You can change the minimum GPS accuracy needed to register a position - by default 1000m
     //const arjs = new LocationBased(scene, camera, { gpsMinAccuracy: 30 } );
