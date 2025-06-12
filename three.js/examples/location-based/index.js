@@ -22,6 +22,10 @@ function main() {
 
     const cam = new WebcamRenderer(renderer, '#video1');
 
+    // You can also set the video element directly
+    // const videoElement = document.querySelector('#video1');
+    // const cam = new WebcamRenderer(renderer, videoElement);
+
     const mouseStep = THREE.MathUtils.degToRad(5);
 
 
