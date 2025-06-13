@@ -20,6 +20,8 @@ const Source = function (parameters) {
     // resolution displayed for the source
     displayWidth: 640,
     displayHeight: 480,
+
+    parent: null,
   };
   //////////////////////////////////////////////////////////////////////////////
   //		setParameters
@@ -86,7 +88,12 @@ Source.prototype.init = function (onReady, onError) {
       return;
     }
 
-    document.body.appendChild(_this.domElement);
+    if (_this.parameters.parent !== null) {
+      _this.parameters.parent.appendChild(_this.domElement);
+    } else {
+      document.body.appendChild(_this.domElement);
+    }
+
     window.dispatchEvent(
       new CustomEvent("arjs-video-loaded", {
         detail: {
@@ -428,6 +435,12 @@ Source.prototype.onResizeElement = function () {
   var screenWidth = window.innerWidth;
   var screenHeight = window.innerHeight;
 
+  if (this.parameters.parent !== null) {
+    const rect = this.parameters.parent.getBoundingClientRect();
+    screenWidth = rect.width;
+    screenHeight = rect.height;
+  }
+
   // sanity check
   console.assert(arguments.length === 0);
 
@@ -478,7 +491,16 @@ Source.prototype.copyElementSizeTo = function(otherElement){
 */
 
 Source.prototype.copyElementSizeTo = function (otherElement) {
-  if (window.innerWidth > window.innerHeight) {
+  let screenWidth = window.innerWidth;
+  let screenHeight = window.innerHeight;
+
+  if (this.parameters.parent !== null) {
+    const rect = this.parameters.parent.getBoundingClientRect();
+    screenWidth = rect.width;
+    screenHeight = rect.height;
+  }
+
+  if (screenWidth > screenHeight) {
     //landscape
     otherElement.style.width = this.domElement.style.width;
     otherElement.style.height = this.domElement.style.height;
@@ -490,7 +512,7 @@ Source.prototype.copyElementSizeTo = function (otherElement) {
     otherElement.style.width =
       (parseInt(otherElement.style.height) * 4) / 3 + "px";
     otherElement.style.marginLeft =
-      (window.innerWidth - parseInt(otherElement.style.width)) / 2 + "px";
+      (screenWidth - parseInt(otherElement.style.width)) / 2 + "px";
     otherElement.style.marginTop = 0;
   }
 };
