@@ -61,11 +61,18 @@ class DeviceOrientationControls extends EventDispatcher {
       beta,
       gamma,
       webkitCompassHeading,
+      webkitCompassAccuracy,
     }) {
       if (isIOS) {
         const ccwNorthHeading = 360 - webkitCompassHeading;
         scope.alphaOffset = MathUtils.degToRad(ccwNorthHeading - alpha);
-        scope.deviceOrientation = { alpha, beta, gamma, webkitCompassHeading };
+        scope.deviceOrientation = {
+          alpha,
+          beta,
+          gamma,
+          webkitCompassHeading,
+          webkitCompassAccuracy,
+        };
       } else {
         if (alpha < 0) alpha += 360;
         scope.deviceOrientation = { alpha, beta, gamma };
