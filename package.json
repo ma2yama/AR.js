@@ -1,6 +1,6 @@
 {
   "name": "@ma2yama/ar.js",
-  "version": "3.4.8",
+  "version": "3.4.9",
   "description": "Efficient Augmented Reality for the Web",
   "main": "./aframe/build/aframe-ar.js",
   "publishConfig": {
