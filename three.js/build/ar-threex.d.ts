@@ -62,7 +62,7 @@ export interface ArMarkerControlsParameters {
     type?: 'pattern' | 'barcode' | 'nft' | 'unknown';
     patternUrl?: string | null;
     barcodeValue?: number | null;
-    descriptorsUrl?: string | null;
+    descriptorsUrl?: string | [string, string, string] | null;
     changeMatrixMode?: 'modelViewMatrix' | 'cameraTransformMatrix';
     minConfidence?: number;
     smooth?: boolean;

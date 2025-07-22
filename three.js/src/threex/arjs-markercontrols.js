@@ -237,6 +237,10 @@ MarkerControls.prototype.name = function () {
     name += " - " + this.parameters.barcodeValue;
   } else if (this.parameters.type === "nft") {
     var url = this.parameters.descriptorsUrl;
+    // If url is an Array, use the first URL
+    if (Array.isArray(url)) {
+      url = url[0];
+    }
     var basename = url.replace(/^.*\//g, "");
     name += " - " + basename;
   } else {

@@ -40,13 +40,17 @@ function load(msg) {
     var cameraMatrix = ar.getCameraMatrix();
 
     // after the ARController is set up, we load the NFT Marker
-    var regexM =
-      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)/gim;
-    var reM = regexM.test(msg.marker);
-    if (reM == true) {
+    if (Array.isArray(msg.marker)) {
       nftMarkerUrl = msg.marker;
-    } else if (reM == false) {
-      nftMarkerUrl = basePath + "/" + msg.marker;
+    } else {
+      var regexM =
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)/gim;
+      var reM = regexM.test(msg.marker);
+      if (reM == true) {
+        nftMarkerUrl = msg.marker;
+      } else if (reM == false) {
+        nftMarkerUrl = basePath + "/" + msg.marker;
+      }
     }
     ar.loadNFTMarker(nftMarkerUrl)
       .then(function (markerId) {
