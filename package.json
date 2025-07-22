@@ -62,7 +62,7 @@
     "worker-loader": "^3.0.8"
   },
   "dependencies": {
-    "@ar-js-org/artoolkit5-js": "^0.3.1",
+    "@ma2yama/artoolkit5-js": "^0.3.2",
     "aframe": "^1.6.0",
     "three": "^0.164.0"
   },
