@@ -63,6 +63,8 @@
   },
   "dependencies": {
     "@ma2yama/artoolkit5-js": "0.3.5-beta.0"
+  },
+  "peerDependencies": {
     "aframe": "^1.6.0",
     "three": "^0.164.0"
   },
