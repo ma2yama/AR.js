@@ -341,9 +341,12 @@ MarkerControls.prototype._initArtoolkit = function () {
 
   function handleNFT(descriptorsUrl, arController) {
     var worker = new Worker();
+    var started = false;
 
-    window.addEventListener("arjs-video-loaded", function (ev) {
-      var video = ev.detail.component;
+    function start(video) {
+      if (started || !video) return;
+      started = true;
+
       var vw = video.clientWidth;
       var vh = video.clientHeight;
 
@@ -435,7 +438,22 @@ MarkerControls.prototype._initArtoolkit = function () {
 
         process();
       };
-    });
+    }
+
+    // Descriptors are often fetched asynchronously, so arjs-video-loaded can
+    // fire before this listener exists. Start from the video already in the DOM.
+    var video = document.querySelector("#arjs-video");
+    if (video && video.isConnected) {
+      start(video);
+    } else {
+      window.addEventListener(
+        "arjs-video-loaded",
+        function (ev) {
+          start(ev.detail.component);
+        },
+        { once: true },
+      );
+    }
   }
 
   function onMarkerFound(event) {
