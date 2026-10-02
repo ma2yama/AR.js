@@ -77,7 +77,8 @@ module.exports = (env, argv) => {
             module,
             externalsType: 'module',
             externals: {
-                aframe: 'aframe'
+                aframe: 'aframe',
+                three: 'three',
             }
         },
         {
@@ -123,7 +124,8 @@ module.exports = (env, argv) => {
             module,
             externalsType: 'module',
             externals: {
-                aframe: 'aframe'
+                aframe: 'aframe',
+                three: 'three',
             }
         },
         {
@@ -157,7 +159,8 @@ module.exports = (env, argv) => {
             module,
             externalsType: 'module',
             externals: {
-                aframe: 'aframe'
+                aframe: 'aframe',
+                three: 'three',
             }
         },
         {
@@ -191,7 +194,8 @@ module.exports = (env, argv) => {
             module,
             externalsType: 'module',
             externals: {
-                aframe: 'aframe'
+                aframe: 'aframe',
+                three: 'three',
             }
         },
         {
