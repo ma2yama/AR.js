@@ -240,11 +240,17 @@ Context.prototype._initArtoolkit = function (onCompleted) {
     new THREE.Matrix4().makeRotationZ(Math.PI),
   );
 
+  // The context attributes are fixed by the first getContext call, so request
+  // willReadFrequently before ARController creates its own context.
+  var canvas = document.createElement("canvas");
+  canvas.getContext("2d", { willReadFrequently: true });
+
   // init controller
   ARController.initWithDimensions(
     _this.parameters.canvasWidth,
     _this.parameters.canvasHeight,
     _this.parameters.cameraParametersUrl,
+    { canvas: canvas },
   ).then((arController) => {
     _this.arController = arController;
 
